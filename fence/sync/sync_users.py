@@ -1788,6 +1788,7 @@ class UserSyncer(object):
 
         policy_id_list = []
         policies = []
+        resources = []
 
         # prefer in-memory if available from user_yaml, if not, get from database
         if user_yaml and user_yaml.project_to_resource:
@@ -1828,6 +1829,15 @@ class UserSyncer(object):
                 self.logger.info(
                     "resource paths for project {}: {}".format(project, paths)
                 )
+                for path in paths:
+                    resource_json = {
+                        "name": project,
+                        "path": path,
+                        "description": "",
+                        "subresources": [],
+                    }
+                    resources.append(resource_json)
+
                 self.logger.debug("permissions: {}".format(permissions))
                 for permission in permissions:
                     # "permission" in the dbgap sense, not the arborist sense
@@ -1844,6 +1854,7 @@ class UserSyncer(object):
                             )
                         self._created_roles.add(permission)
 
+                    # TODO use paths loop above for this logic
                     for path in paths:
                         # If everything was created fine, grant a policy to
                         # this user which contains exactly just this resource,
@@ -1864,6 +1875,11 @@ class UserSyncer(object):
                         }
                         policies.append(policy_json)
             try:
+                # TODO for create_bulk_resource to work as is, parent
+                # resource(s) must exist in Arborist (e.g. to create
+                # "/programs/phs123456.c1", "/programs" must be
+                # present in resource tree)
+                self.arborist_client.create_bulk_resource(resources)
                 self.arborist_client.create_bulk_policy(policies)
                 self.arborist_client.grant_bulk_user_policy(
                     username, policy_id_list, expires_at=expires
@@ -1906,6 +1922,10 @@ class UserSyncer(object):
 
         return True
 
+    # TODO rename since it no longer updates an Arborist resource
+    # TODO make sure that bulk Arborist resource creation now performed in
+    # _update_authz_in_arborist is logically equivalent to it being done by
+    # this function
     def _add_dbgap_study_to_arborist(self, dbgap_study, dbgap_config):
         """
         Return the arborist resource path after adding the specified dbgap study
@@ -1918,10 +1938,6 @@ class UserSyncer(object):
         Returns:
             str: arborist resource path for study
         """
-        # healthy = self._is_arborist_healthy()
-        # if not healthy:
-        #     return False
-
         default_namespaces = dbgap_config.get("study_to_resource_namespaces", {}).get(
             "_default", ["/"]
         )
@@ -1935,41 +1951,13 @@ class UserSyncer(object):
             namespace.rstrip("/") + "/programs/" for namespace in namespaces
         ]
 
-        try:
-            for resource_namespace in arborist_resource_namespaces:
-                # The update_resource function creates a put request which will overwrite
-                # existing resources. Therefore, only create if get_resource returns
-                # the resource doesn't exist.
+        for resource_namespace in arborist_resource_namespaces:
+            full_resource_path = resource_namespace + dbgap_study
+            if dbgap_study not in self._dbgap_study_to_resources:
+                self._dbgap_study_to_resources[dbgap_study] = []
+            self._dbgap_study_to_resources[dbgap_study].append(full_resource_path)
 
-                full_resource_path = resource_namespace + dbgap_study
-                # if not self.arborist_client.get_resource(full_resource_path):
-                #     response = self.arborist_client.update_resource(
-                #         resource_namespace,
-                #         {"name": dbgap_study, "description": "synced from dbGaP"},
-                #         create_parents=True,
-                #     )
-                #     self.logger.info(
-                #         "added arborist resource under parent path: {} for dbgap project {}.".format(
-                #             resource_namespace, dbgap_study
-                #         )
-                #     )
-                #     self.logger.debug("Arborist response: {}".format(response))
-                # else:
-                #     self.logger.debug(
-                #         "Arborist resource already exists: {}".format(
-                #             full_resource_path
-                #         )
-                #     )
-
-                if dbgap_study not in self._dbgap_study_to_resources:
-                    self._dbgap_study_to_resources[dbgap_study] = []
-
-                self._dbgap_study_to_resources[dbgap_study].append(full_resource_path)
-
-            return arborist_resource_namespaces
-        except ArboristError as e:
-            self.logger.error(e)
-            # keep going; maybe just some conflicts from things existing already
+        return arborist_resource_namespaces
 
     def _is_arborist_healthy(self):
         if not self.arborist_client:
