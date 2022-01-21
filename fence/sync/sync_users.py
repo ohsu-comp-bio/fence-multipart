@@ -1855,50 +1855,23 @@ class UserSyncer(object):
                             path, permission, prefix=policy_prefix
                         )
 
-                        # if policy_id not in self._created_policies:
-                        #     try:
-                        #         self.arborist_client.update_policy(
-                        #             policy_id,
-                        #             {
-                        #                 "description": "policy created by fence sync",
-                        #                 "role_ids": [permission],
-                        #                 "resource_paths": [path],
-                        #             },
-                        #             create_if_not_exist=True,
-                        #         )
-                        #     except ArboristError as e:
-                        #         self.logger.info(
-                        #             "not creating policy in arborist; {}".format(str(e))
-                        #         )
-                        #     self._created_policies.add(policy_id)
-
-                        # self.arborist_client.grant_user_policy(
-                        #     username,
-                        #     policy_id,
-                        #     expires_at=expires,
-                        # )
-
-                        if single_user_sync:
-                            policy_id_list.append(policy_id)
-                            policy_json = {
-                                "id": policy_id,
-                                "description": "policy created by fence sync",
-                                "role_ids": [permission],
-                                "resource_paths": [path],
-                            }
-                            policies.append(policy_json)
-            if single_user_sync:
-                try:
-                    self.arborist_client.update_bulk_policy(policies)
-                    self.arborist_client.grant_bulk_user_policy(
-                        username, policy_id_list
-                    )
-                except Exception as e:
-                    self.logger.info(
-                        "Couldn't update bulk policy for user {}: {}".format(
-                            username, e
-                        )
-                    )
+                        policy_id_list.append(policy_id)
+                        policy_json = {
+                            "id": policy_id,
+                            "description": "policy created by fence sync",
+                            "role_ids": [permission],
+                            "resource_paths": [path],
+                        }
+                        policies.append(policy_json)
+            try:
+                self.arborist_client.create_bulk_policy(policies)
+                self.arborist_client.grant_bulk_user_policy(
+                    username, policy_id_list, expires_at=expires
+                )
+            except Exception as e:
+                self.logger.info(
+                    "Couldn't update bulk policy for user {}: {}".format(username, e)
+                )
 
             if user_yaml:
                 for policy in user_yaml.policies.get(username, []):
