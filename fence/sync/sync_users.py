@@ -1830,13 +1830,13 @@ class UserSyncer(object):
                     "resource paths for project {}: {}".format(project, paths)
                 )
                 for path in paths:
-                    resource_json = {
-                        "name": project,
-                        "path": path,
-                        "description": "",
-                        "subresources": [],
-                    }
-                    resources.append(resource_json)
+                    #     resource_json = {
+                    #         "name": project,
+                    #         "path": path,
+                    #         "description": "",
+                    #         "subresources": []
+                    #     }
+                    resources.append(path)
 
                 self.logger.debug("permissions: {}".format(permissions))
                 for permission in permissions:
@@ -1875,15 +1875,43 @@ class UserSyncer(object):
                         }
                         policies.append(policy_json)
             try:
+                import time
+
+                resource_trees = utils.combine_provided_and_dbgap_resources(
+                    [], resources
+                )
+                for resource_tree in resource_trees:
+                    # import pdb; pdb.set_trace()
+                    try:
+                        self.logger.debug(
+                            "sync_single_user_visas: attempting to update arborist resource: {}".format(
+                                resource_tree
+                            )
+                        )
+                        start = time.time()
+                        self.arborist_client.update_resource("/", resource_tree)
+                        end = time.time()
+                        self.logger.info(f"update_resource took {end-start} seconds")
+                    except ArboristError as e:
+                        self.logger.error(e)
+
                 # TODO for create_bulk_resource to work as is, parent
                 # resource(s) must exist in Arborist (e.g. to create
                 # "/programs/phs123456.c1", "/programs" must be
                 # present in resource tree)
-                self.arborist_client.create_bulk_resource(resources)
+                # self.arborist_client.create_bulk_resource(resources)
+
+                start = time.time()
                 self.arborist_client.create_bulk_policy(policies)
+                end = time.time()
+                self.logger.info(f"create_bulk_policy took {end-start} seconds")
+
+                start = time.time()
                 self.arborist_client.grant_bulk_user_policy(
                     username, policy_id_list, expires_at=expires
                 )
+                end = time.time()
+                self.logger.info(f"grant_bulk_user_policy took {end-start} seconds")
             except Exception as e:
                 self.logger.info(
                     "Couldn't update bulk policy for user {}: {}".format(username, e)
