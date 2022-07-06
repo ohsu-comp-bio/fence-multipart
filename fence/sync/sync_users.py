@@ -377,6 +377,11 @@ class UserSyncer(object):
                 pattern += ".enc"
             pattern += "$"
             basename = os.path.basename(filepath)
+            print("--------------------------------")
+            print(pattern, basename)
+            print(re.match(pattern, basename))
+            print(bool(re.match(pattern, basename)))
+            print("--------------------------------")
             if re.match(pattern, basename):
                 return True
         return False
