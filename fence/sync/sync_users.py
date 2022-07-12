@@ -508,6 +508,7 @@ class UserSyncer(object):
         )
 
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print(dbgap_config)
         print(self.id_patterns)
         print(dbgap_config.get("allow_non_dbGaP_whitelist"))
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
