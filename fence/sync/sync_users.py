@@ -376,6 +376,7 @@ class UserSyncer(object):
             if encrypted:
                 pattern += ".enc"
             pattern += "$"
+            pattern = pattern.encode().decode("unicode_escape")
             basename = os.path.basename(filepath)
             print("--------------------------------")
             print(pattern, basename)
@@ -507,12 +508,34 @@ class UserSyncer(object):
             else []
         )
 
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print(
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        )
         print(dbgap_config)
         print(self.id_patterns)
         print(dbgap_config.get("allow_non_dbGaP_whitelist"))
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
+        print(
+            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        )
+        js = {
+            "info": {
+                "host": "s-5745d53f10e1421eb.server.transfer.us-east-1.amazonaws.com",
+                "username": "sftp_user",
+                "password": "",
+                "port": 22,
+                "proxy": "cloud-proxy.internal.io",
+                "proxy_user": "sftpuser",
+            },
+            "encrypted": False,
+            "study_to_resource_namespaces": {"PROJECT-12345": [""]},
+            "allow_non_dbgap_whitelist": True,
+            "allowed_whitelist_patterns": [
+                "authentication_file_PROJECT-(\\\\d*).(csv|txt)"
+            ],
+            "protocol": "sftp",
+            "decrypt_key": "NCBI-DBGAP-TrustedPartner",
+            "parse_consent_code": True,
+        }
         enable_common_exchange_area_access = dbgap_config.get(
             "enable_common_exchange_area_access", False
         )
