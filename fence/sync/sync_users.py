@@ -379,6 +379,9 @@ class UserSyncer(object):
             pattern = pattern.encode().decode(
                 "unicode_escape"
             )  # when converting the YAML from fence-config, python reads it as Python string literal. So "\" turns into "\\" which messes with the regex match
+            print("--------------------------------")
+            print(encrypted)
+            print(pattern, os.path.basename(filepath))
             if re.match(pattern, os.path.basename(filepath)):
                 return True
         return False
