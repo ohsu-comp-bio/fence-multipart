@@ -27,9 +27,9 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
-unit_test:
-  name: Unit Test
-  uses: uc-cdis/.github/.github/workflows/python_unit_test.yaml@reusable-unit-test
-  with:
-    postgres-needed: 'yes'
-  secrets: inherit
+  unit_test:
+    name: Unit Test
+    uses: uc-cdis/.github/.github/workflows/python_unit_test.yaml@reusable-unit-test
+    with:
+      postgres-needed: 'yes'
+    secrets: inherit
