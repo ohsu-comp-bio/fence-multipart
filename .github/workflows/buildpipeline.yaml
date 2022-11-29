@@ -29,7 +29,7 @@ jobs:
 
   unit_test:
     name: Unit Test
-    uses: uc-cdis/.github/.github/workflows/python_unit_test.yaml@reusable-unit-tests
+    uses: uc-cdis/.github/.github/workflows/python_unit_test.yaml@feat/reusable-unit-tests
     with:
       postgres-needed: 'yes'
     secrets: inherit
