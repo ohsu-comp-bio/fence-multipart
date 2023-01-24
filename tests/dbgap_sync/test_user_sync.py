@@ -77,12 +77,14 @@ def test_sync_incorrect_user_yaml_file(syncer, monkeypatch, db_session):
 @pytest.mark.parametrize("allow_non_dbgap_whitelist", [False, True])
 @pytest.mark.parametrize("syncer", ["google", "cleversafe"], indirect=True)
 @pytest.mark.parametrize("parse_consent_code_config", [False, True])
+@pytest.mark.parametrize("parent_to_child_studies_mapping", [False, True])
 def test_sync(
     syncer,
     db_session,
     allow_non_dbgap_whitelist,
     storage_client,
     parse_consent_code_config,
+    parent_to_child_studies_mapping,
     monkeypatch,
 ):
     # patch the sync to use the parameterized config value
@@ -93,6 +95,18 @@ def test_sync(
     monkeypatch.setitem(
         syncer.dbGaP[2], "allow_non_dbGaP_whitelist", allow_non_dbgap_whitelist
     )
+
+    if parent_to_child_studies_mapping:
+        monkeypatch.setitem(
+            syncer.dbGaP[0],
+            "parent_to_child_studies_mapping",
+            {
+                "phs001194.c1": ["phs000571", "phs001843"],
+                "phs001194.c2": ["phs000571", "phs001843"],
+            },
+        )
+
+    # TODO: Actually adjust/write test(s) to test the above mapping works
 
     syncer.sync()
 

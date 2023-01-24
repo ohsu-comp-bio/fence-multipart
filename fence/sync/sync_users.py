@@ -509,6 +509,13 @@ class UserSyncer(object):
         study_common_exchange_areas = dbgap_config.get(
             "study_common_exchange_areas", {}
         )
+        parent_to_child_studies_mapping = dbgap_config.get(
+            "parent_to_child_studies_mapping", {}
+        )
+        if parent_to_child_studies_mapping:
+            self.logger.info(
+                f"Got parent study to child authz mapping: {parent_to_child_studies_mapping}"
+            )
 
         if self.parse_consent_code and enable_common_exchange_area_access:
             self.logger.info(
@@ -584,6 +591,25 @@ class UserSyncer(object):
                             )
 
                         dbgap_project += "." + consent_code
+
+                        if dbgap_project in parent_to_child_studies_mapping:
+                            self.logger.info(
+                                f"found study {dbgap_project} and Fence "
+                                "is configured to provide additional access. Giving user "
+                                f"{username} {privileges} privileges in projects: "
+                                f"{parent_to_child_studies_mapping[dbgap_project]}."
+                            )
+                            for child_study in parent_to_child_studies_mapping[
+                                dbgap_project
+                            ]:
+                                self._add_dbgap_project_for_user(
+                                    child_study,
+                                    privileges,
+                                    username,
+                                    sess,
+                                    user_projects,
+                                    dbgap_config,
+                                )
 
                     display_name = row.get("user name", "")
                     tags = {"dbgap_role": row.get("role", "")}
