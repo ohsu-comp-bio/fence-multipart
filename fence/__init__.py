@@ -72,7 +72,7 @@ PROMETHEUS_TMP_COUNTER_DIR = tempfile.TemporaryDirectory()
 
 
 app = flask.Flask(__name__)
-CORS(app=app, headers=["content-type", "accept"], expose_headers="*")
+# CORS(app=app, headers=["content-type", "accept"], expose_headers="*")
 
 
 def warn_about_logger():
