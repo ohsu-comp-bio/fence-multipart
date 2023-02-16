@@ -1,9 +1,7 @@
 import flask
-from flask_sqlalchemy_session import current_session
 from fence.auth import login_user, logout
 from fence.models import User, IdentityProvider
 import time
-from datetime import datetime
 
 
 def test_login_user_already_in_db(db_session):

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone, timedelta
 
 import flask
-from flask_sqlalchemy_session import current_session
+from fence.dbSession import current_session
 
 from fence.config import config
 from fence.models import IdentityProvider

@@ -12,7 +12,7 @@ from cdislogging import get_logger
 from cdispyutils.config import get_value
 from cdispyutils.hmac4 import generate_aws_presigned_url
 import flask
-from flask_sqlalchemy_session import current_session
+from fence.dbSession import current_session
 import requests
 from azure.storage.blob import (
     BlobServiceClient,

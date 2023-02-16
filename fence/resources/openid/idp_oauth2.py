@@ -1,6 +1,6 @@
 from authlib.client import OAuth2Session
 from cached_property import cached_property
-from flask_sqlalchemy_session import current_session
+from fence.dbSession import current_session
 from jose import jwt
 import requests
 import time

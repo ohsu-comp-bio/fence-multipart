@@ -8,7 +8,7 @@ import fence.resources.ga4gh.passports
 import fence.scripting.fence_create
 import fence.resources.ga4gh.passports
 
-from flask_sqlalchemy_session import current_session
+from fence.dbSession import current_session
 from jose import jwt as jose_jwt
 
 from authutils.errors import JWTError
