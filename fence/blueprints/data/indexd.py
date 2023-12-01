@@ -358,13 +358,12 @@ class BlankIndex(object):
         Returns:
             uploadId(str)
         """
+        bucket = bucket or flask.current_app.config["DATA_UPLOAD_BUCKET"]
         if not bucket:
-            try:
-                bucket = flask.current_app.config["DATA_UPLOAD_BUCKET"]
-            except KeyError:
-                raise InternalError(
-                    "fence not configured with data upload bucket; can't create signed URL"
-                )
+            raise InternalError(
+                "fence not configured with data upload bucket; can't create signed URL"
+            )
+
         s3_url = "s3://{}/{}".format(bucket, key)
         return S3IndexedFileLocation(s3_url).init_multipart_upload(expires_in)
 
@@ -1657,7 +1656,22 @@ def filter_auth_ids(action, list_auth_ids):
 
 
 def verify_data_upload_bucket_configuration(bucket):
+    """
+    Verify that the bucket is configured in Fence as an uploadable bucket
+
+    Args:
+        bucket(str): bucket name
+    """
     s3_buckets = flask.current_app.config["ALLOWED_DATA_UPLOAD_BUCKETS"]
+
+    if not s3_buckets:
+        raise InternalError("ALLOWED_DATA_UPLOAD_BUCKETS not configured")
+
+    s3_buckets = get_value(
+        flask.current_app.config,
+        "ALLOWED_DATA_UPLOAD_BUCKETS",
+        InternalError("ALLOWED_DATA_UPLOAD_BUCKETS not configured"),
+    )
     if bucket not in s3_buckets:
         logger.error(f"Bucket '{bucket}' not in ALLOWED_DATA_UPLOAD_BUCKETS config")
         logger.debug(f"Buckets configgured in ALLOWED_DATA_UPLOAD_BUCKETS {s3_buckets}")
